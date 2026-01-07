@@ -145,7 +145,7 @@
                     <h2 class="text-2xl font-black uppercase tracking-tighter">Company Financial Performance</h2>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                     <!-- Revenue Column -->
                     <div class="space-y-4">
                         <div class="p-4 bg-slate-800 rounded-2xl border border-slate-700">
@@ -172,16 +172,29 @@
                         <div class="p-4 bg-blue-600 rounded-2xl shadow-lg h-full flex flex-col justify-center">
                             <p class="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1">Company Net (After Expenses)</p>
                             <p id="companyMonthlyNet" class="text-4xl font-black text-white">$0.00</p>
-                            <div class="mt-4 pt-4 border-t border-blue-500/50 flex flex-col gap-1 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="opacity-80">Shared Monthly Deductions:</span>
-                                    <span id="companyMonthlyDeductions" class="font-bold">$0.00</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="opacity-80">Weekly Add-on Expenses:</span>
-                                    <span id="companyWeeklyAddonsTotal" class="font-bold">$0.00</span>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Company Expenses Breakdown Section -->
+                <div class="border-t border-slate-700 pt-6">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Company Expenses Breakdown</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Total Gas (Drivers)</p>
+                            <p id="companyTotalGasBreakdown" class="text-lg font-bold text-orange-300">$0.00</p>
+                        </div>
+                        <div class="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Monthly Deductions</p>
+                            <p id="companySharedDeductionsBreakdown" class="text-lg font-bold text-slate-300">$0.00</p>
+                        </div>
+                        <div class="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Weekly Add-Ons</p>
+                            <p id="companyWeeklyAddonsBreakdown" class="text-lg font-bold text-slate-300">$0.00</p>
+                        </div>
+                        <div class="p-3 bg-slate-800 rounded-xl border border-slate-600">
+                            <p class="text-[9px] font-bold text-blue-400 uppercase mb-1">Total Company Expenses</p>
+                            <p id="companyTotalAllExpenses" class="text-lg font-black text-blue-300">$0.00</p>
                         </div>
                     </div>
                 </div>
@@ -344,7 +357,6 @@
                 const currentDate = new Date(year, month, d);
                 const isSunday = currentDate.getDay() === 0;
 
-                // Identify week start (Monday) for expense tracker
                 const diff = currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1);
                 const mondayDate = new Date(new Date(currentDate).setDate(diff));
                 const weekStartIso = mondayDate.toISOString().split('T')[0];
@@ -432,6 +444,7 @@
 
             let monthCompanyGross = 0;
             let monthCompanyPortion = 0;
+            let monthTotalGas = 0;
 
             let lastAbdCut = 0;
             let lastSyedCut = 0;
@@ -455,7 +468,7 @@
                     
                     let companyPortion = gross - (gross * currentCut);
 
-                    return { gross, net, currentCut, companyPortion };
+                    return { gross, net, currentCut, companyPortion, gas };
                 };
 
                 const abd = processDriver('abd', lastAbdCut);
@@ -472,6 +485,7 @@
                 syedMonthlySub += syed.net;
                 monthCompanyGross += (abd.gross + syed.gross);
                 monthCompanyPortion += (abd.companyPortion + syed.companyPortion);
+                monthTotalGas += (abd.gas + syed.gas);
 
                 if (isSunday || isLast) {
                     const abdWkCell = row.querySelector('.abd-weekly-total');
@@ -491,7 +505,6 @@
             const getVal = (id) => parseFloat(document.getElementById(id).value || 0);
             const sharedDeductions = getVal('sharedTruck') + getVal('sharedInsurance') + getVal('sharedTax') + getVal('sharedBusiness');
             
-            // Sum all visible weekly business add-ons
             let weeklyAddonsTotal = 0;
             document.querySelectorAll('.weekly-exp-input').forEach(input => {
                 weeklyAddonsTotal += parseFloat(input.value || 0);
@@ -503,16 +516,25 @@
             document.getElementById('netAbdAfterDeduct').innerText = '$' + abdMonthlySub.toFixed(2);
             document.getElementById('netSyedAfterDeduct').innerText = '$' + syedMonthlySub.toFixed(2);
 
-            // Set Company Dashboard
+            // Set Company Dashboard Main Metrics
             document.getElementById('companyMonthlyGross').innerText = '$' + monthCompanyGross.toFixed(2);
             document.getElementById('companyMonthlyDriverPayout').innerText = '$' + (abdMonthlySub + syedMonthlySub).toFixed(2);
             document.getElementById('companyMonthlyPortion').innerText = '$' + monthCompanyPortion.toFixed(2);
             
-            document.getElementById('companyMonthlyDeductions').innerText = '$' + sharedDeductions.toFixed(2);
-            document.getElementById('companyWeeklyAddonsTotal').innerText = '$' + weeklyAddonsTotal.toFixed(2);
+            // Set Breakdown Section
+            const totalAllExpenses = sharedDeductions + weeklyAddonsTotal + monthTotalGas;
             
-            const totalCompanyExpenses = sharedDeductions + weeklyAddonsTotal;
-            document.getElementById('companyMonthlyNet').innerText = '$' + (monthCompanyPortion - totalCompanyExpenses).toFixed(2);
+            document.getElementById('companyTotalGasBreakdown').innerText = '$' + monthTotalGas.toFixed(2);
+            document.getElementById('companySharedDeductionsBreakdown').innerText = '$' + sharedDeductions.toFixed(2);
+            document.getElementById('companyWeeklyAddonsBreakdown').innerText = '$' + weeklyAddonsTotal.toFixed(2);
+            document.getElementById('companyTotalAllExpenses').innerText = '$' + totalAllExpenses.toFixed(2);
+
+            // Set Monthly Net
+            document.getElementById('companyMonthlyNet').innerText = '$' + (monthCompanyPortion - totalAllExpenses).toFixed(2);
+            
+            // Update the legacy small breakdown rows just in case
+            if(document.getElementById('companyMonthlyDeductions')) document.getElementById('companyMonthlyDeductions').innerText = '$' + sharedDeductions.toFixed(2);
+            if(document.getElementById('companyWeeklyAddonsTotal')) document.getElementById('companyWeeklyAddonsTotal').innerText = '$' + weeklyAddonsTotal.toFixed(2);
         }
 
         window.onload = function() {
