@@ -11,12 +11,12 @@
         .input-cell { width: 72px; border: 1px solid #e2e8f0; padding: 4px; text-align: center; font-size: 11px; }
         .job-id { width: 85px; background-color: #f8fafc; }
         .header-row { background-color: #0f172a; color: white; }
-        /* Ensure all headers in the header row stay dark with white text */
         .header-row th { background-color: #0f172a !important; color: white !important; }
         .employee-header { background-color: #1e293b; color: white; font-weight: bold; text-align: center; font-size: 14px; padding: 8px; }
-        .job-group-alt { background-color: #f1f5f9; } /* Shading for data rows (slots 6-10) only */
+        .job-group-alt { background-color: #f1f5f9; } 
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .summary-pill { background: #1e293b; color: #4ade80; padding: 4px 12px; border-radius: 6px; font-family: ui-monospace, monospace; }
+        .weekly-sum-box { font-size: 9px; margin-top: 2px; border-top: 1px solid #cbd5e1; padding-top: 2px; font-weight: 800; color: #1e293b; }
     </style>
 </head>
 <body class="bg-slate-100 p-4 font-sans text-slate-900">
@@ -24,9 +24,12 @@
         <header class="mb-6 flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200 gap-4">
             <div>
                 <h1 class="text-2xl font-black text-slate-800 tracking-tight">SHIFT TOWING SERVICES LLC <span class="text-blue-600">PAYROLL</span></h1>
-                <p class="text-slate-500 text-sm">Fixed 15 Slots • Automatic Weekly Commission • Shared Business Deductions</p>
+                <p class="text-slate-500 text-sm">Fixed 15 Slots • Daily Gross/Net tracking • Shared Business Deductions</p>
             </div>
-            <div class="flex gap-4 items-center">
+            <div class="flex gap-2 items-center">
+                <button onclick="exportWeekCSV()" class="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition-colors">
+                    EXPORT WEEK CSV
+                </button>
                 <button onclick="clearAllData()" class="bg-red-50 text-red-600 border border-red-200 px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition-colors">
                     CLEAR SAVED DATA
                 </button>
@@ -48,29 +51,27 @@
                         </tr>
                         <tr class="header-row text-[9px] uppercase tracking-widest">
                             <th class="border p-2 sticky-col">Date</th>
-                            <!-- Abdullah Headers (1-15) - Standardized Dark Style -->
                             <script>
                                 for(let i=1; i<=15; i++) {
                                     document.write(`<th class="border p-1">Job ${i}</th><th class="border p-1">$</th>`);
                                 }
                             </script>
-                            <th class="border p-1 bg-slate-600">Daily Total</th>
+                            <th class="border p-1 bg-slate-600">Daily Gross</th>
                             <th class="border p-1 bg-blue-800">% Cut</th>
                             <th class="border p-1 bg-orange-600">Gas</th>
-                            <th class="border p-1 bg-green-800">Wk Gross</th>
-                            <th class="border p-1 bg-green-800">Wk Net</th>
+                            <th class="border p-1 bg-green-900">Daily Net</th>
+                            <th class="border p-1 bg-indigo-900">Weekly Total</th>
 
-                            <!-- Syed Headers (1-15) - Standardized Dark Style -->
                             <script>
                                 for(let i=1; i<=15; i++) {
                                     document.write(`<th class="border p-1">Job ${i}</th><th class="border p-1">$</th>`);
                                 }
                             </script>
-                            <th class="border p-1 bg-slate-600">Daily Total</th>
+                            <th class="border p-1 bg-slate-600">Daily Gross</th>
                             <th class="border p-1 bg-blue-800">% Cut</th>
                             <th class="border p-1 bg-orange-600">Gas</th>
-                            <th class="border p-1 bg-green-800">Wk Gross</th>
-                            <th class="border p-1 bg-green-800">Wk Net</th>
+                            <th class="border p-1 bg-green-900">Daily Net</th>
+                            <th class="border p-1 bg-indigo-900">Weekly Total</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -78,33 +79,25 @@
             </div>
         </div>
 
-        <!-- New Summary and Deductions Area -->
         <div class="mt-8 space-y-6">
-            
-            <!-- Totals Earned Section -->
+            <!-- Driver Totals Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
-                    <span class="text-sm font-bold text-slate-500 uppercase tracking-tight">Abdullah Total Earned</span>
-                    <span id="totalAbdEarned" class="summary-pill text-lg font-bold">$0.00</span>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
-                    <span class="text-sm font-bold text-slate-500 uppercase tracking-tight">Syed Total Earned</span>
-                    <span id="totalSyedEarned" class="summary-pill text-lg font-bold">$0.00</span>
-                </div>
-            </div>
-
-            <!-- Net After Deductions Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-slate-900 p-5 rounded-xl shadow-lg flex justify-between items-center text-white">
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Abdullah Net (After Deductions)</p>
-                        <p id="netAbdAfterDeduct" class="text-3xl font-black text-green-400">$0.00</p>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-bold text-slate-500 uppercase tracking-tight">Abdullah Summary</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm"><span>Total Earned (Daily Net Sum):</span> <span id="totalAbdEarned" class="font-bold">$0.00</span></div>
+                        <div class="flex justify-between text-sm border-t pt-2"><span>Final Balance:</span> <span id="netAbdAfterDeduct" class="text-xl font-black text-green-600">$0.00</span></div>
                     </div>
                 </div>
-                <div class="bg-slate-900 p-5 rounded-xl shadow-lg flex justify-between items-center text-white">
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Syed Net (After Deductions)</p>
-                        <p id="netSyedAfterDeduct" class="text-3xl font-black text-green-400">$0.00</p>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-bold text-slate-500 uppercase tracking-tight">Syed Summary</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm"><span>Total Earned (Daily Net Sum):</span> <span id="totalSyedEarned" class="font-bold">$0.00</span></div>
+                        <div class="flex justify-between text-sm border-t pt-2"><span>Final Balance:</span> <span id="netSyedAfterDeduct" class="text-xl font-black text-green-600">$0.00</span></div>
                     </div>
                 </div>
             </div>
@@ -115,7 +108,7 @@
                     <div class="w-2 h-6 bg-blue-600 rounded"></div>
                     <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Shared Deductions / Business Expenses</h2>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div>
                         <label class="text-[10px] font-black text-slate-400 block mb-1">TRUCK PAY</label>
                         <input type="number" id="sharedTruck" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" oninput="saveAndCalc(this)">
@@ -133,6 +126,65 @@
                         <input type="number" id="sharedBusiness" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" oninput="saveAndCalc(this)">
                     </div>
                 </div>
+
+                <!-- Weekly Specific Expenses Section -->
+                <div class="mt-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Weekly Business Add-ons (Repairs, Tickets, Bills)</h3>
+                    </div>
+                    <div id="weeklyExpensesContainer" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <!-- Dynamic week rows added via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Earnings Section -->
+            <div class="bg-slate-900 p-8 rounded-3xl shadow-2xl text-white">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-3 h-8 bg-blue-500 rounded-full"></div>
+                    <h2 class="text-2xl font-black uppercase tracking-tighter">Company Financial Performance</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Revenue Column -->
+                    <div class="space-y-4">
+                        <div class="p-4 bg-slate-800 rounded-2xl border border-slate-700">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Collected (Gross)</p>
+                            <p id="companyMonthlyGross" class="text-3xl font-black text-white">$0.00</p>
+                        </div>
+                        <div class="p-4 bg-slate-800 rounded-2xl border border-slate-700">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Driver Payout (Total Daily Nets)</p>
+                            <p id="companyMonthlyDriverPayout" class="text-xl font-bold text-orange-400">$0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Company Portion Column -->
+                    <div class="space-y-4">
+                        <div class="p-4 bg-slate-800 rounded-2xl border border-slate-700 h-full flex flex-col justify-center">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Company Share (Portion kept)</p>
+                            <p id="companyMonthlyPortion" class="text-3xl font-black text-blue-400">$0.00</p>
+                            <p class="text-[10px] text-slate-500 mt-2 italic">Based on (Gross - (Gross * Cut %))</p>
+                        </div>
+                    </div>
+
+                    <!-- Net Column -->
+                    <div class="space-y-4">
+                        <div class="p-4 bg-blue-600 rounded-2xl shadow-lg h-full flex flex-col justify-center">
+                            <p class="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1">Company Net (After Expenses)</p>
+                            <p id="companyMonthlyNet" class="text-4xl font-black text-white">$0.00</p>
+                            <div class="mt-4 pt-4 border-t border-blue-500/50 flex flex-col gap-1 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="opacity-80">Shared Monthly Deductions:</span>
+                                    <span id="companyMonthlyDeductions" class="font-bold">$0.00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="opacity-80">Weekly Add-on Expenses:</span>
+                                    <span id="companyWeeklyAddonsTotal" class="font-bold">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -140,13 +192,11 @@
     <script>
         const STORAGE_KEY = 'shift_towing_payroll_data';
 
-        // Load specific value from localStorage
         function getSavedValue(id) {
             const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
             return data[id] || '';
         }
 
-        // Save specific value to localStorage
         function saveValue(id, value) {
             const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
             data[id] = value;
@@ -170,6 +220,106 @@
             }
         }
 
+        function exportWeekCSV() {
+            const monthStartStr = getSavedValue('monthStart') || document.getElementById('monthStart').value;
+            const today = new Date();
+            const monthStart = new Date(monthStartStr + 'T00:00:00');
+            
+            let refDate = new Date(today);
+            if (refDate.getMonth() !== monthStart.getMonth() || refDate.getFullYear() !== monthStart.getFullYear()) {
+                refDate = new Date(monthStart);
+            }
+
+            const dayOfWeek = refDate.getDay(); 
+            const diff = refDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            const monday = new Date(refDate.setDate(diff));
+            
+            const weekDates = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                if (d.getMonth() === monthStart.getMonth() && d.getFullYear() === monthStart.getFullYear()) {
+                    weekDates.push(d);
+                }
+            }
+
+            if (weekDates.length === 0) {
+                alert("No data found for the current week in this month.");
+                return;
+            }
+
+            const drivers = ['abd', 'syed'];
+            const driverNames = { 'abd': 'Abdullah Rasib', 'syed': 'Syed B. Jillani' };
+            
+            let csv = 'Date,Driver,JobSlot,JobID,Amount,DailyGross,CutPercent,Gas,DailyNet\n';
+            
+            let totals = {
+                'abd': { gross: 0, net: 0, company: 0 },
+                'syed': { gross: 0, net: 0, company: 0 }
+            };
+
+            let lastCuts = { 'abd': 0, 'syed': 0 };
+
+            const lastDay = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
+            for(let d=1; d<=lastDay; d++) {
+                const date = new Date(monthStart.getFullYear(), monthStart.getMonth(), d);
+                const iso = date.toISOString().split('T')[0];
+                drivers.forEach(p => {
+                    const cutVal = getSavedValue(`${p}-${iso}-cut`);
+                    if (cutVal) lastCuts[p] = parseFloat(cutVal) / 100;
+                });
+                if (date.getTime() >= weekDates[0].getTime()) break;
+            }
+
+            weekDates.forEach(date => {
+                const iso = date.toISOString().split('T')[0];
+                const dateStr = date.toLocaleDateString();
+
+                drivers.forEach(p => {
+                    let dailyGross = 0;
+                    for (let i = 1; i <= 15; i++) {
+                        dailyGross += parseFloat(getSavedValue(`${p}-${iso}-amt-${i}`) || 0);
+                    }
+                    
+                    const cutVal = getSavedValue(`${p}-${iso}-cut`);
+                    if (cutVal) lastCuts[p] = parseFloat(cutVal) / 100;
+                    
+                    const gas = parseFloat(getSavedValue(`${p}-${iso}-gas`) || 0);
+                    const dailyNet = (dailyGross * lastCuts[p]) - gas;
+                    const companyShare = dailyGross - (dailyGross * lastCuts[p]);
+
+                    totals[p].gross += dailyGross;
+                    totals[p].net += dailyNet;
+                    totals[p].company += companyShare;
+
+                    for (let i = 1; i <= 15; i++) {
+                        const jobId = getSavedValue(`${p}-${iso}-id-${i}`);
+                        const amount = getSavedValue(`${p}-${iso}-amt-${i}`);
+                        if (jobId || amount) {
+                            csv += `${dateStr},${driverNames[p]},Slot ${i},"${jobId}",${amount},${dailyGross},${(lastCuts[p]*100).toFixed(0)}%,${gas},${dailyNet.toFixed(2)}\n`;
+                        }
+                    }
+                });
+            });
+
+            csv += '\nWEEKLY SUMMARY\n';
+            csv += 'Driver,WeekGrossTotal,WeekNetTotal,CompanyShareTotal\n';
+            drivers.forEach(p => {
+                csv += `${driverNames[p]},$${totals[p].gross.toFixed(2)},$${totals[p].net.toFixed(2)},$${totals[p].company.toFixed(2)}\n`;
+            });
+
+            const fileName = `ShiftTowing_Week_${weekDates[0].toISOString().split('T')[0]}_to_${weekDates[weekDates.length-1].toISOString().split('T')[0]}.csv`;
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function generateSheet() {
             const startDateStr = getSavedValue('monthStart') || document.getElementById('monthStart').value;
             document.getElementById('monthStart').value = startDateStr;
@@ -182,6 +332,10 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
+            const weeklyExpenseContainer = document.getElementById('weeklyExpensesContainer');
+            weeklyExpenseContainer.innerHTML = '';
+            const processedWeeks = new Set();
+
             for (let d = 1; d <= lastDay; d++) {
                 const dayNum = d < 10 ? '0' + d : d;
                 const monthNum = (month + 1) < 10 ? '0' + (month + 1) : (month + 1);
@@ -189,6 +343,17 @@
                 
                 const currentDate = new Date(year, month, d);
                 const isSunday = currentDate.getDay() === 0;
+
+                // Identify week start (Monday) for expense tracker
+                const diff = currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1);
+                const mondayDate = new Date(new Date(currentDate).setDate(diff));
+                const weekStartIso = mondayDate.toISOString().split('T')[0];
+
+                if (!processedWeeks.has(weekStartIso)) {
+                    processedWeeks.add(weekStartIso);
+                    renderWeeklyExpenseRow(weekStartIso);
+                }
+
                 const dateString = currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
                 const rowClass = isSunday ? 'bg-indigo-50 border-b-4 border-indigo-200' : 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
 
@@ -220,92 +385,142 @@
                     <td class="border p-1 text-center font-bold abd-daily text-slate-600 bg-slate-100">$0</td>
                     <td class="border"><input type="number" id="${abdCutKey}" value="${getSavedValue(abdCutKey)}" class="input-cell abd-cut" placeholder="%" oninput="saveAndCalc(this)"></td>
                     <td class="border"><input type="number" id="${abdGasKey}" value="${getSavedValue(abdGasKey)}" class="input-cell abd-gas" placeholder="Gas" oninput="saveAndCalc(this)"></td>
-                    <td class="border p-1 text-center abd-weekly-total text-blue-700 font-bold text-[10px]">${isSunday ? '$0' : ''}</td>
-                    <td class="border p-1 text-center abd-weekly-pay text-green-700 font-bold text-[10px]">${isSunday ? '$0' : ''}</td>
+                    <td class="border p-1 text-center abd-daily-net font-bold text-green-700 text-[10px]">$0</td>
+                    <td class="border p-1 text-center abd-weekly-total font-black text-indigo-900 text-[9px] leading-tight"></td>
                     
                     ${generateSlots('syed')}
                     <td class="border p-1 text-center font-bold syed-daily text-slate-600 bg-slate-100">$0</td>
                     <td class="border"><input type="number" id="${syedCutKey}" value="${getSavedValue(syedCutKey)}" class="input-cell syed-cut" placeholder="%" oninput="saveAndCalc(this)"></td>
                     <td class="border"><input type="number" id="${syedGasKey}" value="${getSavedValue(syedGasKey)}" class="input-cell syed-gas" placeholder="Gas" oninput="saveAndCalc(this)"></td>
-                    <td class="border p-1 text-center syed-weekly-total text-blue-700 font-bold text-[10px]">${isSunday ? '$0' : ''}</td>
-                    <td class="border p-1 text-center syed-weekly-pay text-green-700 font-bold text-[10px]">${isSunday ? '$0' : ''}</td>
+                    <td class="border p-1 text-center syed-daily-net font-bold text-green-700 text-[10px]">$0</td>
+                    <td class="border p-1 text-center syed-weekly-total font-black text-indigo-900 text-[9px] leading-tight"></td>
                 `;
                 tbody.appendChild(row);
             }
             calculate();
         }
 
+        function renderWeeklyExpenseRow(weekStartIso) {
+            const container = document.getElementById('weeklyExpensesContainer');
+            const amtKey = `weekly-exp-${weekStartIso}-amt`;
+            const noteKey = `weekly-exp-${weekStartIso}-note`;
+            
+            const div = document.createElement('div');
+            div.className = "flex flex-col md:flex-row gap-3 items-center border-b border-slate-200 pb-3 last:border-0 last:pb-0";
+            div.innerHTML = `
+                <div class="w-full md:w-32 text-[10px] font-bold text-slate-500 uppercase">Week of ${weekStartIso}</div>
+                <div class="w-full md:w-32">
+                    <input type="number" id="${amtKey}" value="${getSavedValue(amtKey)}" 
+                           class="w-full border rounded p-2 text-xs outline-none focus:ring-2 focus:ring-blue-500 weekly-exp-input" 
+                           placeholder="Expense $" oninput="saveAndCalc(this)">
+                </div>
+                <div class="flex-1 w-full">
+                    <input type="text" id="${noteKey}" value="${getSavedValue(noteKey)}" 
+                           class="w-full border rounded p-2 text-xs outline-none focus:ring-2 focus:ring-blue-500" 
+                           placeholder="Note (e.g. Truck Repair, Ticket...)" oninput="saveValue(this.id, this.value)">
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
         function calculate() {
             const rows = document.querySelectorAll('#tableBody tr');
+            
             let abdMonthlySub = 0; let syedMonthlySub = 0;
-            let abdWkG = 0; let syedWkG = 0;
-            let abdWkGas = 0; let syedWkGas = 0;
-            let abdWkCut = 0; let syedWkCut = 0;
+            let currentAbdWkGross = 0; let currentAbdWkNet = 0;
+            let currentSyedWkGross = 0; let currentSyedWkNet = 0;
+
+            let monthCompanyGross = 0;
+            let monthCompanyPortion = 0;
+
+            let lastAbdCut = 0;
+            let lastSyedCut = 0;
 
             rows.forEach((row, idx) => {
-                const processDriver = (prefix) => {
-                    let daily = 0;
-                    row.querySelectorAll(`.${prefix}-amt`).forEach(i => daily += parseFloat(i.value || 0));
-                    row.querySelector(`.${prefix}-daily`).innerText = '$' + daily.toFixed(0);
-                    
-                    let cutInput = row.querySelector(`.${prefix}-cut`).value;
-                    let gasInput = row.querySelector(`.${prefix}-gas`).value;
-                    
-                    return { daily, cutInput, gasInput };
-                };
-
-                const abd = processDriver('abd');
-                const syed = processDriver('syed');
-
-                if(abd.cutInput) abdWkCut = parseFloat(abd.cutInput) / 100;
-                if(abd.gasInput) abdWkGas += parseFloat(abd.gasInput);
-                abdWkG += abd.daily;
-
-                if(syed.cutInput) syedWkCut = parseFloat(syed.cutInput) / 100;
-                if(syed.gasInput) syedWkGas += parseFloat(syed.gasInput);
-                syedWkG += syed.daily;
-
                 const isSunday = row.classList.contains('bg-indigo-50');
                 const isLast = idx === rows.length - 1;
 
-                if (isSunday || isLast) {
-                    const payA = (abdWkG * abdWkCut) - abdWkGas;
-                    const payS = (syedWkG * syedWkCut) - syedWkGas;
+                const processDriver = (prefix, lastCut) => {
+                    let gross = 0;
+                    row.querySelectorAll(`.${prefix}-amt`).forEach(i => gross += parseFloat(i.value || 0));
+                    row.querySelector(`.${prefix}-daily`).innerText = '$' + gross.toFixed(0);
                     
-                    row.querySelector('.abd-weekly-total').innerText = '$' + abdWkG.toFixed(0);
-                    row.querySelector('.abd-weekly-pay').innerText = '$' + payA.toFixed(2);
-                    row.querySelector('.syed-weekly-total').innerText = '$' + syedWkG.toFixed(0);
-                    row.querySelector('.syed-weekly-pay').innerText = '$' + payS.toFixed(2);
+                    let cutInput = row.querySelector(`.${prefix}-cut`).value;
+                    let currentCut = cutInput ? parseFloat(cutInput) / 100 : lastCut;
+                    
+                    let gas = parseFloat(row.querySelector(`.${prefix}-gas`).value || 0);
+                    
+                    let net = (gross * currentCut) - gas;
+                    row.querySelector(`.${prefix}-daily-net`).innerText = '$' + net.toFixed(2);
+                    
+                    let companyPortion = gross - (gross * currentCut);
 
-                    abdMonthlySub += payA;
-                    syedMonthlySub += payS;
+                    return { gross, net, currentCut, companyPortion };
+                };
 
-                    abdWkG = 0; syedWkG = 0; abdWkGas = 0; syedWkGas = 0;
+                const abd = processDriver('abd', lastAbdCut);
+                lastAbdCut = abd.currentCut;
+                const syed = processDriver('syed', lastSyedCut);
+                lastSyedCut = syed.currentCut;
+
+                currentAbdWkGross += abd.gross;
+                currentAbdWkNet += abd.net;
+                currentSyedWkGross += syed.gross;
+                currentSyedWkNet += syed.net;
+
+                abdMonthlySub += abd.net;
+                syedMonthlySub += syed.net;
+                monthCompanyGross += (abd.gross + syed.gross);
+                monthCompanyPortion += (abd.companyPortion + syed.companyPortion);
+
+                if (isSunday || isLast) {
+                    const abdWkCell = row.querySelector('.abd-weekly-total');
+                    abdWkCell.innerHTML = `<div class='weekly-sum-box'>WK GROSS: $${currentAbdWkGross.toFixed(0)}</div><div class='weekly-sum-box text-green-700'>WK NET: $${currentAbdWkNet.toFixed(2)}</div>`;
+                    
+                    const syedWkCell = row.querySelector('.syed-weekly-total');
+                    syedWkCell.innerHTML = `<div class='weekly-sum-box'>WK GROSS: $${currentSyedWkGross.toFixed(0)}</div><div class='weekly-sum-box text-green-700'>WK NET: $${currentSyedWkNet.toFixed(2)}</div>`;
+                    
+                    currentAbdWkGross = 0; currentAbdWkNet = 0;
+                    currentSyedWkGross = 0; currentSyedWkNet = 0;
+                } else {
+                    row.querySelector('.abd-weekly-total').innerHTML = "";
+                    row.querySelector('.syed-weekly-total').innerHTML = "";
                 }
             });
 
             const getVal = (id) => parseFloat(document.getElementById(id).value || 0);
+            const sharedDeductions = getVal('sharedTruck') + getVal('sharedInsurance') + getVal('sharedTax') + getVal('sharedBusiness');
             
-            // Calculate shared deductions
-            const deductions = getVal('sharedTruck') + getVal('sharedInsurance') + getVal('sharedTax') + getVal('sharedBusiness');
+            // Sum all visible weekly business add-ons
+            let weeklyAddonsTotal = 0;
+            document.querySelectorAll('.weekly-exp-input').forEach(input => {
+                weeklyAddonsTotal += parseFloat(input.value || 0);
+            });
 
-            // Set Totals Earned
+            // Set Driver Cards
             document.getElementById('totalAbdEarned').innerText = '$' + abdMonthlySub.toFixed(2);
             document.getElementById('totalSyedEarned').innerText = '$' + syedMonthlySub.toFixed(2);
+            document.getElementById('netAbdAfterDeduct').innerText = '$' + abdMonthlySub.toFixed(2);
+            document.getElementById('netSyedAfterDeduct').innerText = '$' + syedMonthlySub.toFixed(2);
 
-            // Set Net After Deductions
-            document.getElementById('netAbdAfterDeduct').innerText = '$' + (abdMonthlySub - deductions).toFixed(2);
-            document.getElementById('netSyedAfterDeduct').innerText = '$' + (syedMonthlySub - deductions).toFixed(2);
+            // Set Company Dashboard
+            document.getElementById('companyMonthlyGross').innerText = '$' + monthCompanyGross.toFixed(2);
+            document.getElementById('companyMonthlyDriverPayout').innerText = '$' + (abdMonthlySub + syedMonthlySub).toFixed(2);
+            document.getElementById('companyMonthlyPortion').innerText = '$' + monthCompanyPortion.toFixed(2);
+            
+            document.getElementById('companyMonthlyDeductions').innerText = '$' + sharedDeductions.toFixed(2);
+            document.getElementById('companyWeeklyAddonsTotal').innerText = '$' + weeklyAddonsTotal.toFixed(2);
+            
+            const totalCompanyExpenses = sharedDeductions + weeklyAddonsTotal;
+            document.getElementById('companyMonthlyNet').innerText = '$' + (monthCompanyPortion - totalCompanyExpenses).toFixed(2);
         }
 
         window.onload = function() {
-            // Load shared input values
             const sharedInputs = ['sharedTruck', 'sharedInsurance', 'sharedTax', 'sharedBusiness'];
             sharedInputs.forEach(id => {
                 const input = document.getElementById(id);
                 if (input) input.value = getSavedValue(id);
             });
-            
             generateSheet();
         };
     </script>
