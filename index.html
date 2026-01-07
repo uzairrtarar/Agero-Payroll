@@ -24,7 +24,7 @@
         <header class="mb-6 flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200 gap-4">
             <div>
                 <h1 class="text-2xl font-black text-slate-800 tracking-tight">SHIFT TOWING SERVICES LLC <span class="text-blue-600">PAYROLL</span></h1>
-                <p class="text-slate-500 text-sm">Fixed 15 Slots • Automatic Weekly Commission • Data Persists Automatically</p>
+                <p class="text-slate-500 text-sm">Fixed 15 Slots • Automatic Weekly Commission • Shared Business Deductions</p>
             </div>
             <div class="flex gap-4 items-center">
                 <button onclick="clearAllData()" class="bg-red-50 text-red-600 border border-red-200 px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition-colors">
@@ -57,8 +57,8 @@
                             <th class="border p-1 bg-slate-600">Daily Total</th>
                             <th class="border p-1 bg-blue-800">% Cut</th>
                             <th class="border p-1 bg-orange-600">Gas</th>
-                            <th class="border p-1 bg-green-800">Before %</th>
-                            <th class="border p-1 bg-green-800">After %</th>
+                            <th class="border p-1 bg-green-800">Wk Gross</th>
+                            <th class="border p-1 bg-green-800">Wk Net</th>
 
                             <!-- Syed Headers (1-15) - Standardized Dark Style -->
                             <script>
@@ -69,8 +69,8 @@
                             <th class="border p-1 bg-slate-600">Daily Total</th>
                             <th class="border p-1 bg-blue-800">% Cut</th>
                             <th class="border p-1 bg-orange-600">Gas</th>
-                            <th class="border p-1 bg-green-800">Before %</th>
-                            <th class="border p-1 bg-green-800">After %</th>
+                            <th class="border p-1 bg-green-800">Wk Gross</th>
+                            <th class="border p-1 bg-green-800">Wk Net</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -78,52 +78,59 @@
             </div>
         </div>
 
-        <!-- Expense Control Panels -->
-        <div class="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
-            <!-- Abdullah Card -->
-            <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-black text-slate-800">Abdullah Monthly Final</h2>
-                    <div id="abdSubtotal" class="summary-pill text-xl font-bold">$0.00</div>
+        <!-- New Summary and Deductions Area -->
+        <div class="mt-8 space-y-6">
+            
+            <!-- Totals Earned Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-500 uppercase tracking-tight">Abdullah Total Earned</span>
+                    <span id="totalAbdEarned" class="summary-pill text-lg font-bold">$0.00</span>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div><label class="text-[10px] font-black text-slate-400 block mb-1">TRUCK PAY</label><input type="number" id="abdTruck" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="saveAndCalc(this)"></div>
-                    <div><label class="text-[10px] font-black text-slate-400 block mb-1">INSURANCE</label><input type="number" id="abdInsurance" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="saveAndCalc(this)"></div>
-                    <div><label class="text-[10px] font-black text-slate-400 block mb-1">TAXES</label><input type="number" id="abdTax" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="saveAndCalc(this)"></div>
-                    <div><label class="text-[10px] font-black text-slate-400 block mb-1">MISC BUS.</label><input type="number" id="abdBusiness" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="saveAndCalc(this)"></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-500 uppercase tracking-tight">Syed Total Earned</span>
+                    <span id="totalSyedEarned" class="summary-pill text-lg font-bold">$0.00</span>
                 </div>
-                <div class="bg-slate-900 rounded-2xl p-6 flex justify-between items-center text-white">
+            </div>
+
+            <!-- Net After Deductions Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-900 p-5 rounded-xl shadow-lg flex justify-between items-center text-white">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 tracking-widest mb-1 uppercase">Final Payout Balance</p>
-                        <p class="text-4xl font-black text-green-400" id="abdullahFinal">$0.00</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Abdullah Net (After Deductions)</p>
+                        <p id="netAbdAfterDeduct" class="text-3xl font-black text-green-400">$0.00</p>
                     </div>
-                    <div class="text-right border-l border-slate-700 pl-6">
-                        <p class="text-[10px] text-slate-400 mb-1">TOTAL DEDUCTIONS</p>
-                        <p id="abdDeduct" class="text-xl font-bold text-red-400">$0.00</p>
+                </div>
+                <div class="bg-slate-900 p-5 rounded-xl shadow-lg flex justify-between items-center text-white">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Syed Net (After Deductions)</p>
+                        <p id="netSyedAfterDeduct" class="text-3xl font-black text-green-400">$0.00</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Syed Card -->
+            <!-- Shared Deductions Section -->
             <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-black text-slate-800">Syed Monthly Final</h2>
-                    <div id="syedSubtotal" class="summary-pill text-xl font-bold">$0.00</div>
+                <div class="flex items-center gap-2 mb-4 border-b pb-2">
+                    <div class="w-2 h-6 bg-blue-600 rounded"></div>
+                    <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Shared Deductions / Business Expenses</h2>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div><label class="text-[10px] font-black text-slate-400 block mb-1">TRUCK PAY</label><input type="number" id="syedTruck" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="saveAndCalc(this)"></div>
-                    <div><label class="text-[10px] font-black text-slate-400 block mb-1">INSURANCE</label><input type="number" id="syedInsurance" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="saveAndCalc(this)"></div>
-                    <div><label class="text-[10px] font-black text-slate-400 block mb-1">TAXES</label><input type="number" id="syedTax" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="saveAndCalc(this)"></div>
-                    <div><label class="text-[10px] font-black text-slate-400 block mb-1">MISC BUS.</label><input type="number" id="syedBusiness" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="0" oninput="saveAndCalc(this)"></div>
-                </div>
-                <div class="bg-slate-900 rounded-2xl p-6 flex justify-between items-center text-white">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 tracking-widest mb-1 uppercase">Final Payout Balance</p>
-                        <p class="text-4xl font-black text-green-400" id="syedFinal">$0.00</p>
+                        <label class="text-[10px] font-black text-slate-400 block mb-1">TRUCK PAY</label>
+                        <input type="number" id="sharedTruck" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" oninput="saveAndCalc(this)">
                     </div>
-                    <div class="text-right border-l border-slate-700 pl-6">
-                        <p class="text-[10px] text-slate-400 mb-1">TOTAL DEDUCTIONS</p>
-                        <p id="syedDeduct" class="text-xl font-bold text-red-400">$0.00</p>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 block mb-1">INSURANCE</label>
+                        <input type="number" id="sharedInsurance" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" oninput="saveAndCalc(this)">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 block mb-1">TAXES</label>
+                        <input type="number" id="sharedTax" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" oninput="saveAndCalc(this)">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 block mb-1">MISC BUSINESS</label>
+                        <input type="number" id="sharedBusiness" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0" oninput="saveAndCalc(this)">
                     </div>
                 </div>
             </div>
@@ -278,26 +285,25 @@
             });
 
             const getVal = (id) => parseFloat(document.getElementById(id).value || 0);
-            const calcFinal = (sub, truck, ins, tax, bus) => sub - (truck + ins + tax + bus);
+            
+            // Calculate shared deductions
+            const deductions = getVal('sharedTruck') + getVal('sharedInsurance') + getVal('sharedTax') + getVal('sharedBusiness');
 
-            const abdDed = getVal('abdTruck') + getVal('abdInsurance') + getVal('abdTax') + getVal('abdBusiness');
-            const syedDed = getVal('syedTruck') + getVal('syedInsurance') + getVal('syedTax') + getVal('syedBusiness');
+            // Set Totals Earned
+            document.getElementById('totalAbdEarned').innerText = '$' + abdMonthlySub.toFixed(2);
+            document.getElementById('totalSyedEarned').innerText = '$' + syedMonthlySub.toFixed(2);
 
-            document.getElementById('abdSubtotal').innerText = '$' + abdMonthlySub.toFixed(2);
-            document.getElementById('abdDeduct').innerText = '$' + abdDed.toFixed(2);
-            document.getElementById('abdullahFinal').innerText = '$' + calcFinal(abdMonthlySub, getVal('abdTruck'), getVal('abdInsurance'), getVal('abdTax'), getVal('abdBusiness')).toFixed(2);
-
-            document.getElementById('syedSubtotal').innerText = '$' + syedMonthlySub.toFixed(2);
-            document.getElementById('syedDeduct').innerText = '$' + syedDed.toFixed(2);
-            document.getElementById('syedFinal').innerText = '$' + calcFinal(syedMonthlySub, getVal('syedTruck'), getVal('syedInsurance'), getVal('syedTax'), getVal('syedBusiness')).toFixed(2);
+            // Set Net After Deductions
+            document.getElementById('netAbdAfterDeduct').innerText = '$' + (abdMonthlySub - deductions).toFixed(2);
+            document.getElementById('netSyedAfterDeduct').innerText = '$' + (syedMonthlySub - deductions).toFixed(2);
         }
 
         window.onload = function() {
-            // Load card values
-            const cards = ['abdTruck', 'abdInsurance', 'abdTax', 'abdBusiness', 'syedTruck', 'syedInsurance', 'syedTax', 'syedBusiness'];
-            cards.forEach(id => {
+            // Load shared input values
+            const sharedInputs = ['sharedTruck', 'sharedInsurance', 'sharedTax', 'sharedBusiness'];
+            sharedInputs.forEach(id => {
                 const input = document.getElementById(id);
-                input.value = getSavedValue(id);
+                if (input) input.value = getSavedValue(id);
             });
             
             generateSheet();
