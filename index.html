@@ -243,14 +243,15 @@
                 refDate = new Date(monthStart);
             }
 
+            // Find Sunday of the week (Sunday -> Saturday)
             const dayOfWeek = refDate.getDay(); 
-            const diff = refDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-            const monday = new Date(refDate.setDate(diff));
+            const diff = refDate.getDate() - dayOfWeek; // Sunday is 0
+            const sunday = new Date(refDate.setDate(diff));
             
             const weekDates = [];
             for (let i = 0; i < 7; i++) {
-                const d = new Date(monday);
-                d.setDate(monday.getDate() + i);
+                const d = new Date(sunday);
+                d.setDate(sunday.getDate() + i);
                 if (d.getMonth() === monthStart.getMonth() && d.getFullYear() === monthStart.getFullYear()) {
                     weekDates.push(d);
                 }
@@ -355,11 +356,13 @@
                 const isoDate = `${year}-${monthNum}-${dayNum}`;
                 
                 const currentDate = new Date(year, month, d);
-                const isSunday = currentDate.getDay() === 0;
+                // Week ends on Saturday (getDay() === 6)
+                const isSaturday = currentDate.getDay() === 6;
 
-                const diff = currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1);
-                const mondayDate = new Date(new Date(currentDate).setDate(diff));
-                const weekStartIso = mondayDate.toISOString().split('T')[0];
+                // Identify week start (Sunday) for expense tracker
+                const diff = currentDate.getDate() - currentDate.getDay(); // Sunday is 0
+                const sundayDate = new Date(new Date(currentDate).setDate(diff));
+                const weekStartIso = sundayDate.toISOString().split('T')[0];
 
                 if (!processedWeeks.has(weekStartIso)) {
                     processedWeeks.add(weekStartIso);
@@ -367,7 +370,7 @@
                 }
 
                 const dateString = currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
-                const rowClass = isSunday ? 'bg-indigo-50 border-b-4 border-indigo-200' : 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
+                const rowClass = isSaturday ? 'bg-indigo-50 border-b-4 border-indigo-200' : 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
 
                 const generateSlots = (prefix) => {
                     let html = '';
@@ -450,7 +453,8 @@
             let lastSyedCut = 0;
 
             rows.forEach((row, idx) => {
-                const isSunday = row.classList.contains('bg-indigo-50');
+                // Saturday check for weekly totals (Saturday ends the week)
+                const isSaturday = row.classList.contains('bg-indigo-50');
                 const isLast = idx === rows.length - 1;
 
                 const processDriver = (prefix, lastCut) => {
@@ -487,7 +491,7 @@
                 monthCompanyPortion += (abd.companyPortion + syed.companyPortion);
                 monthTotalGas += (abd.gas + syed.gas);
 
-                if (isSunday || isLast) {
+                if (isSaturday || isLast) {
                     const abdWkCell = row.querySelector('.abd-weekly-total');
                     abdWkCell.innerHTML = `<div class='weekly-sum-box'>WK GROSS: $${currentAbdWkGross.toFixed(0)}</div><div class='weekly-sum-box text-green-700'>WK NET: $${currentAbdWkNet.toFixed(2)}</div>`;
                     
